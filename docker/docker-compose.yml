@@ -1,0 +1,69 @@
+##
+## SIP Gateway — Docker Compose
+##
+## Deploys Kamailio (SIP proxy) + RTPEngine (media relay) as a transparent
+## SIP gateway between the ElevenLabs SIP server and a customer's SBC.
+##
+## Required env vars (set in .env or export before running):
+##   EXTERNAL_IP             — public IP of this host (Elastic IP)
+##   INTERNAL_IP             — private IP of this host (EC2 internal)
+##   CUSTOMER_SBC_ADDRESS    — customer SBC hostname or IP
+##   CUSTOMER_SBC_PORT       — customer SBC SIP port (default: 5060)
+##   ELEVENLABS_SIP_HOST     — inbound calls forward here (default: sip-static.rtc.elevenlabs.io)
+##   ELEVENLABS_SIP_PORT     — ElevenLabs SIP port (default: 5060)
+##
+services:
+  kamailio:
+    build:
+      context: ./kamailio
+      dockerfile: Dockerfile
+    container_name: sip-gateway-kamailio
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - EXTERNAL_IP=${EXTERNAL_IP}
+      - CUSTOMER_SBC_ADDRESS=${CUSTOMER_SBC_ADDRESS}
+      - CUSTOMER_SBC_PORT=${CUSTOMER_SBC_PORT:-5060}
+      - ELEVENLABS_SIP_HOST=${ELEVENLABS_SIP_HOST:-sip-static.rtc.elevenlabs.io}
+      - ELEVENLABS_SIP_PORT=${ELEVENLABS_SIP_PORT:-5060}
+      - AUTH_USER=${AUTH_USER}
+      - AUTH_PASSWORD=${AUTH_PASSWORD}
+      - AUTH_REALM=${AUTH_REALM:-${EXTERNAL_IP}}
+    depends_on:
+      rtpengine:
+        condition: service_started
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  rtpengine:
+    build:
+      context: ./rtpengine
+      dockerfile: Dockerfile
+    container_name: sip-gateway-rtpengine
+    network_mode: host
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_NICE
+    command:
+      - "--foreground"
+      - "--log-stderr"
+      - "--table=-1"
+      - "--interface=pub/${INTERNAL_IP}!${EXTERNAL_IP}"
+      - "--listen-ng=127.0.0.1:22222"
+      - "--port-min=10000"
+      - "--port-max=20000"
+      - "--log-level=6"
+      - "--delete-delay=0"
+      - "--timeout=60"
+      - "--silent-timeout=600"
+      - "--final-timeout=7200"
+      - "--tos=184"
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"

@@ -1,0 +1,12 @@
+# Only key_name is required. Everything else has sensible defaults.
+
+region   = "ap-south-1"          # Mumbai (India)
+key_name = "your-key-pair-name"  # Name of your EC2 key pair (required)
+
+# VPC and subnet are auto-detected from your default VPC if left empty.
+# Uncomment only if you need a specific VPC:
+# vpc_id    = "vpc-xxxxxxxxxxxxxxxxx"
+# subnet_id = "subnet-xxxxxxxxxxxxxxxxx"
+
+# instance_type = "t3.medium"   # default — good for up to ~200 concurrent calls
+# instance_type = "c5.large"    # compute-optimized for high call volume
