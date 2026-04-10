@@ -49,7 +49,7 @@ if [ -z "$CUSTOMER_SBC_ADDRESS" ]; then
     echo "Usage: ./deploy.sh --customer-sbc <SBC_IP> --key <path-to-pem> [options]"
     echo ""
     echo "Required:"
-    echo "  --customer-sbc <addr>         Your SBC IP or FQDN"
+    echo "  --customer-sbc <addr>         Telephony provider SBC IP or FQDN"
     echo "  --key <path>                  Path to SSH .pem key file"
     echo ""
     echo "Optional:"

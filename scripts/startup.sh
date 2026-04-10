@@ -45,7 +45,7 @@ if [ ! -f "$ENV_FILE" ]; then
     cat > "$ENV_FILE" <<EOF
 EXTERNAL_IP=$EXTERNAL_IP
 INTERNAL_IP=$INTERNAL_IP
-CUSTOMER_SBC_ADDRESS=REPLACE_ME
+CUSTOMER_SBC_ADDRESS=REPLACE_ME_WITH_SBC_IP
 CUSTOMER_SBC_PORT=5060
 ELEVENLABS_SIP_HOST=sip-static.rtc.elevenlabs.io
 ELEVENLABS_SIP_PORT=5060
@@ -53,7 +53,7 @@ AUTH_USER=
 AUTH_PASSWORD=
 AUTH_REALM=
 EOF
-    echo "Created .env template at $ENV_FILE — operator must set CUSTOMER_SBC_ADDRESS"
+    echo "Created .env template at $ENV_FILE — set CUSTOMER_SBC_ADDRESS to your telephony provider's SBC IP"
 fi
 
 sed -i "s/^EXTERNAL_IP=.*/EXTERNAL_IP=$EXTERNAL_IP/" "$ENV_FILE"

@@ -39,7 +39,7 @@ graph LR
 ```mermaid
 graph LR
     LK[ElevenLabs SIP] -->|TCP 5060| GW["SIP Gateway<br/>Elastic IP · In-Region"]
-    GW -->|SIP + RTP| SBC[Your SBC]
+    GW -->|SIP + RTP| SBC[Telephony Provider SBC]
     style GW fill:#dfd,stroke:#0a0,stroke-width:2px
 ```
 
@@ -75,10 +75,10 @@ That's it. Your gateway is running. Point your ElevenLabs outbound trunk to the 
 sequenceDiagram
     participant EL as ElevenLabs SIP
     participant GW as SIP Gateway (EC2)
-    participant SBC as Your SBC
+    participant SBC as Telephony Provider SBC
 
     EL->>GW: INVITE sip:+1234@gateway:5060
-    Note over GW: Rewrite R-URI → your SBC<br/>Anchor media via RTPEngine
+    Note over GW: Rewrite R-URI → provider SBC<br/>Anchor media via RTPEngine
     GW->>SBC: INVITE sip:+1234@sbc:5060
     SBC-->>GW: 100 Trying
     GW-->>EL: 100 Trying
@@ -106,9 +106,9 @@ sequenceDiagram
 | **Kamailio 5.8** | SIP signaling proxy — rewrites headers, relays calls | TCP/UDP 5060 |
 | **RTPEngine** | Media relay — rewrites SDP, proxies all RTP/RTCP | UDP 10000–20000 |
 
-**Outbound** (ElevenLabs → Your SBC): Kamailio rewrites the R-URI to your SBC address.
+**Outbound** (ElevenLabs → Telephony Provider SBC): Kamailio rewrites the R-URI to the provider's SBC address.
 
-**Inbound** (Your SBC → ElevenLabs): Gateway detects the source IP matches your SBC and routes the INVITE to `sip-static.rtc.elevenlabs.io` over TCP.
+**Inbound** (Telephony Provider SBC → ElevenLabs): Gateway detects the source IP matches the SBC and routes the INVITE to ElevenLabs over TCP.
 
 ---
 
@@ -151,7 +151,7 @@ terraform apply     # type "yes" to confirm
 | Resource | Details |
 |----------|---------|
 | EC2 instance | Ubuntu 24.04 LTS, Docker pre-installed |
-| Elastic IP | **Static** — this is the IP your SBC whitelists |
+| Elastic IP | **Static** — the telephony provider whitelists this on their SBC |
 | Security group | SIP (TCP/UDP 5060), SIP TLS (5061), RTP (UDP 10000–20000), SSH (22) |
 
 Save the `sip_gateway_elastic_ip` output — you'll need it next.
@@ -173,16 +173,16 @@ The script will:
 1. Find your EC2 instance by its Name tag
 2. Wait for Docker to finish installing (handles fresh instances)
 3. Upload the Docker stack (Kamailio + RTPEngine) via SCP
-4. Write the `.env` configuration with your SBC address and the Elastic IP
+4. Write the `.env` configuration with the telephony provider's SBC address and the Elastic IP
 5. Build and start the containers
 
 ### Deploy options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--customer-sbc` | *(required)* | Your SBC IP or FQDN |
+| `--customer-sbc` | *(required)* | Telephony provider SBC IP or FQDN |
 | `--key` | *(required)* | Path to SSH `.pem` key file |
-| `--customer-sbc-port` | `5060` | SBC SIP port |
+| `--customer-sbc-port` | `5060` | Telephony provider SBC SIP port |
 | `--auth-user` | *(empty)* | Digest auth username |
 | `--auth-password` | *(empty)* | Digest auth password |
 | `--region` | `ap-south-1` | AWS region |
@@ -239,7 +239,7 @@ Replace `<elastic-ip>` and `<key>` with your values.
 | **Start** | `ssh -i <key> ubuntu@<elastic-ip> 'cd /opt/sip-gateway/docker && sudo docker compose --env-file .env up -d'` |
 | **RTPEngine sessions** | `ssh -i <key> ubuntu@<elastic-ip> 'sudo docker exec sip-gateway-rtpengine rtpengine-ctl list sessions'` |
 
-### Update SBC address without redeploying
+### Update telephony provider SBC address without redeploying
 
 ```bash
 ssh -i <key> ubuntu@<elastic-ip> \
@@ -313,8 +313,8 @@ sip-gateway-aws/
 |---------|-------------|-----|
 | `deploy.sh` hangs on "Waiting for Docker..." | Instance just launched, user_data still running | Wait up to 3 min. SSH in: check `/var/log/sip-gateway-startup.log` |
 | "Could not find running instance" | Wrong region or Terraform not applied | Verify `--region` matches `terraform.tfvars` |
-| `408 Request Timeout` | SBC unreachable from EC2 | Whitelist the Elastic IP on your SBC firewall |
-| `500 Server Internal Error` | SBC rejected the call | Check number format and SBC logs |
+| `408 Request Timeout` | SBC unreachable from EC2 | Whitelist the Elastic IP on the telephony provider's SBC firewall |
+| `500 Server Internal Error` | SBC rejected the call | Check number format and provider SBC logs |
 | No SIP response at all | Security group issue | `nc -vz <elastic-ip> 5060` from outside to test |
 | One-way audio | RTP ports blocked | Security group needs UDP 10000–20000 from `0.0.0.0/0` |
 | Elastic IP not attached | Terraform error | `aws ec2 describe-addresses --region <region>` |

@@ -34,8 +34,8 @@ fi
 
 echo "=== Kamailio config generated ==="
 echo "  EXTERNAL_IP:            ${EXTERNAL_IP}"
-echo "  CUSTOMER_SBC_ADDRESS:   ${CUSTOMER_SBC_ADDRESS}"
-echo "  CUSTOMER_SBC_PORT:      ${CUSTOMER_SBC_PORT:-5060}"
+echo "  SBC_ADDRESS:            ${CUSTOMER_SBC_ADDRESS}"
+echo "  SBC_PORT:              ${CUSTOMER_SBC_PORT:-5060}"
 echo "  ELEVENLABS_SIP_HOST:    ${ELEVENLABS_SIP_HOST}"
 echo "  ELEVENLABS_SIP_PORT:    ${ELEVENLABS_SIP_PORT}"
 

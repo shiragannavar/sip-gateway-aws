@@ -2,13 +2,13 @@
 ## SIP Gateway — Docker Compose
 ##
 ## Deploys Kamailio (SIP proxy) + RTPEngine (media relay) as a transparent
-## SIP gateway between the ElevenLabs SIP server and a customer's SBC.
+## SIP gateway between the ElevenLabs SIP server and a telephony provider's SBC.
 ##
 ## Required env vars (set in .env or export before running):
 ##   EXTERNAL_IP             — public IP of this host (Elastic IP)
 ##   INTERNAL_IP             — private IP of this host (EC2 internal)
-##   CUSTOMER_SBC_ADDRESS    — customer SBC hostname or IP
-##   CUSTOMER_SBC_PORT       — customer SBC SIP port (default: 5060)
+##   CUSTOMER_SBC_ADDRESS    — telephony provider SBC hostname or IP
+##   CUSTOMER_SBC_PORT       — telephony provider SBC SIP port (default: 5060)
 ##   ELEVENLABS_SIP_HOST     — inbound calls forward here (default: sip-static.rtc.elevenlabs.io)
 ##   ELEVENLABS_SIP_PORT     — ElevenLabs SIP port (default: 5060)
 ##
